@@ -1,9 +1,22 @@
 [project]
 name = "research-pipeline"
 version = "0.1.0"
-description = "Add your description here"
+description = "Autonomous Agent Dispatcher & Cross-Summarizer"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "google-genai>=2.11.0",
 ]
+
+[project.scripts]
+dispatcher = "research_pipeline.dispatcher:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.3.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -11,6 +11,9 @@
 ## Notes
 
 - **Язык:** Python 3.12 с `uv` для управления зависимостями
+- **Структура:** `src-layout` (`src/research_pipeline/`), модули: `config.py`, `dispatcher.py`, `clients/agent_cli.py`, `clients/gemma.py`
+- **Точка входа:** `uv run dispatcher` (или `python -m research_pipeline`)
+- **Dev-инструменты:** `ruff` (format + lint), `pytest` (заготовка)
 - **Установленные CLI:** Kilocode 7.3.1, Opencode 1.17.11, Hermes 0.18.0
 - **Модель для саммари:** Gemma 4 31B через Google AI Studio API (ключ есть у пользователя)
 - **Модель для Verifier'а (Phase 2):** Minimax M3 через Hermes
@@ -26,7 +29,7 @@
 
 - [T2 — Research: Kilocode & Opencode CLI в неинтерактивном режиме](tickets/T2-kilocode-opencode-cli.md) — основной подход: `--format json` (headless-режим, TTY не нужен, NDJSON-стрим). Production: `opencode serve` / `kilo serve`. `script`/`pty` — deprecated. Opencode: `--dangerously-skip-permissions`, дефолт `opencode/hy3-free`. Kilo: `--auto`, дефолт `kilo-auto/free`. Gemma 4 31B недоступна ни в одном из CLI.
 
-- [T3 — Task: Project scaffolding](tickets/T3-project-scaffolding.md) — проект на VPS, uv-окружение: `google-genai==2.11.0`, Python 3.12. Структура: `src/`, `tasks/`, `reports/`. `uv sync` проходит, `uv run` работает.
+- [T3 — Task: Project scaffolding](tickets/T3-project-scaffolding.md) — проект на VPS, uv-окружение, `src-layout` (`src/research_pipeline/`). Модули: `config.py` (os.getenv, без pydantic-settings), `clients/agent_cli.py`, `clients/gemma.py`. Точка входа: `uv run dispatcher`. Dev: `ruff`, `pytest`. `pydantic-settings` сознательно отклонён как оверкилл.
 
 ## Not yet specified
 
@@ -39,3 +42,4 @@
 
 - **Composer (Hermes + Minimax M3)** — отдельный агент, который будет создавать задачи. Не входит в этот research pipeline.
 - **Verifier (Phase 2)** — будет отдельной картой после завершения Dispatcher-прототипа.
+- **`pydantic-settings`** — предложен в ревью T3 как SOTA, отклонён: оверкилл для прототипа с 3 env-переменными. Подробное обоснование — в [T3 resolution](tickets/T3-project-scaffolding.md): scale mismatch (3 значения vs библиотека для сложных конфигов), читаемость плоских констант лучше, Google SDK сам валидирует ключ при вызове, соблюдение принципа «no abstractions for single-use code».
