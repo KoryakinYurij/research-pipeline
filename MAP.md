@@ -6,7 +6,10 @@
 
 Работающий прототип **Dispatcher** на Python: читает задачу из `task.md` → отправляет в Kilocode CLI и Opencode CLI → сохраняет оба сырых отчёта → через Gemma 4 31B (Google AI Studio) генерирует кросс-саммари (общее / различия / на что обратить внимание) → формирует финальный `report.md`.
 
-**Verifier** — следующим этапом (Phase 2), вне скоупа этой карты.
+**✅ Destination достигнут (2026-07-16).** Дальнейшие шаги:
+- **Verifier (Phase 2)** — следующая wayfinder-карта: проверка качества отчётов, петля доисследования.
+- **Level 2 serve** — тикет в Not yet specified: замена subprocess на `kilo serve`/`opencode serve` + HTTP.
+- **Composer** — отдельный агент (Hermes + Minimax M3), генерирует `task.md`. Вне скоупа этой карты.
 
 ## Notes
 
