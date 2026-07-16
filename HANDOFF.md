@@ -9,7 +9,7 @@
 
 - ✅ `agent_cli.py` — **работает**. Тест `run_kilocode("2+2?")` возвращает `{'text': '4', ...}`.
 - ✅ `dispatcher.py` — код корректен, ruff чисто.
-- ❌ Полный прогон пайплайна (`uv run python src/research_pipeline/dispatcher.py`) — **не удалось проверить** из-за проблем с basher-агентом (путает команды, не захватывает вывод).
+- ✅ Полный прогон пайплайна — **верифицирован** (2026-07-16): smoke-задача «Ответь одним словом: pong» → Kilocode: `pong`, Opencode: `pong` → `report-20260716-055921.md` создан. Gemma-саммари пропущена (нет `GOOGLE_API_KEY`) — ожидаемо.
 
 ## Ключевые архитектурные решения (финал)
 
@@ -73,39 +73,20 @@ opencode run --dangerously-skip-permissions --format json -m opencode/deepseek-v
 - `--format json` — работает, выдаёт NDJSON
 - `-m provider/model` — указание модели (не `--model`)
 
-## Нерешённая проблема
+## Verification status (2026-07-16 smoke test)
 
-**Полный прогон пайплайна не удалось верифицировать.** Basher-агент систематически не захватывал вывод (возможно, из-за буферизации Python stdout или неправильной обработки shell-команд).
+**✅ E2E verified:** `uv run python -u -m research_pipeline tasks/smoke.md`
 
-### Как проверить пайплайн (следующему агенту)
+- Kilocode: `pong` (4 chars, exit=0)
+- Opencode: `pong` (4 chars, exit=0)
+- Cross-summary: skipped (no `GOOGLE_API_KEY`) — expected, code handles gracefully
+- Report: `reports/report-20260716-055921.md` created
 
-```bash
-# 1. Убить висящие процессы
-pkill -9 -f 'kilo run'; pkill -9 -f 'opencode run'
+### Причина прошлых неудач
 
-# 2. Проверить импорты и простой вызов
-cd /home/fixedius/projects/research-pipeline
-uv run python -c "
-import asyncio
-from research_pipeline.clients.agent_cli import run_kilocode
-result = asyncio.run(run_kilocode('What is 2+2?', timeout=30))
-print(f'OK={result[\"ok\"]}, text={result[\"text\"]!r}')
-"
-# Ожидается: OK=True, text='4'
-
-# 3. Запустить полный пайплайн (важно: PYTHONUNBUFFERED=1 + python -u)
-PYTHONUNBUFFERED=1 uv run python -u src/research_pipeline/dispatcher.py
-
-# Или через python -m:
-PYTHONUNBUFFERED=1 uv run python -u -m research_pipeline
-```
-
-### Возможные причины зависания
-
-1. **CLI_TIMEOUT=120** (в config.py) — каждый CLI может висеть до 2 минут. Для task.md длиной 230 байт это многовато. Возможно, CLI долго думают над реальной исследовательской задачей.
-2. **API-ключи не настроены** — оба CLI используют free-tier роутинг, но без ключей могут быть задержки.
-3. **Вывод буферизируется** — даже с `flush=True` и `PYTHONUNBUFFERED=1`, возможна буферизация на уровне piping в basher-агенте.
-4. **Basher-агент глючит** — в этой сессии систематически путал команды (запускал `--help` вместо run, `ls` вместо pipeline).
+Basher-агент нестабилен с долгими командами — проблема Layer B (verification harness), не кода. Для успешного прогона нужен либо:
+- Прямой запуск (без nohup) с таймаутом ≥90s
+- SSH/человек
 
 ## Что НЕ делать
 
@@ -119,3 +100,25 @@ PYTHONUNBUFFERED=1 uv run python -u -m research_pipeline
 
 - `src/research_pipeline/clients/agent_cli.py` — полностью переписан
 - `src/research_pipeline/dispatcher.py` — добавлен `flush=True` во все `print()`
+
+---
+
+# HANDOFF — P1 Hygiene (2026-07-16, follow-up session)
+
+## Что сделано
+
+### Verification gap closed
+E2E smoke-прогон: `uv run python -u -m research_pipeline tasks/smoke.md` → оба CLI `pong`, `report-*.md` создан. Проблема HANDOFF была в Layer B (basher), не в коде.
+
+### P1 Hygiene fixes
+- `agent_cli.py`: `FileNotFoundError` soft-fail на отсутствующий CLI, `start_new_session=True` + `os.killpg` на таймаут (нет orphan-процессов), `_parse_ndjson_text()` — чистая функция для тестирования
+- `README.md`: entry point `uv run dispatcher`, `--env-file .env`, актуальная структура
+- `tests/test_agent_cli.py`: 11 unit-тестов NDJSON-парсинга (все green)
+- `MAP.md`: T4 verified, P1 hygiene documented
+
+### Dev-команды
+```bash
+uv run ruff check src/ tests/   # clean
+uv run pytest -v tests/          # 11 passed
+uv run dispatcher                # entry point (без --env-file если ключ не нужен)
+```

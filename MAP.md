@@ -31,12 +31,15 @@
 
 - [T3 — Task: Project scaffolding](tickets/T3-project-scaffolding.md) — проект на VPS, uv-окружение, `src-layout` (`src/research_pipeline/`). Модули: `config.py` (os.getenv, без pydantic-settings), `clients/agent_cli.py`, `clients/gemma.py`. Точка входа: `uv run dispatcher`. Dev: `ruff`, `pytest`. `pydantic-settings` сознательно отклонён как оверкилл.
 
+- [T4 — Prototype: Dispatcher](tickets/T4-prototype-dispatcher.md) — ✅ E2E verified (2026-07-16). Smoke-тест «pong»: оба CLI отвечают корректно, `report-*.md` создаётся. Gemma-саммари пропущена без ключа — ожидаемо, код graceful. Проблема HANDOFF была в Layer B (basher-verification harness), не в коде. P1 hygiene: soft-fail на отсутствующий CLI (`FileNotFoundError`), process-group kill на таймаут (`os.killpg`), README fix (entry point + `--env-file`), unit-тесты NDJSON-парсинга (11 тестов).
+
 ## Not yet specified
 
 - **Формат `task.md`** — будет определён когда появится Composer. Dispatcher'у достаточно читать содержимое как текст.
-- **Стратегия обработки ошибок** — таймауты, ретраи, что делать если один из CLI упал. Уточнится на прототипе.
+- **Ретраи и degraded mode** — что делать если один CLI упал, а второй отработал. Soft-fail на `FileNotFoundError` уже есть; ретраи и fallback-стратегия — позже.
 - **Дизайн Verifier'а** — критерии качества, петля доисследования, формат финального документа. Исследовать в Phase 2.
 - **Автоматизация** — watch-режим, OACP-интеграция. После прототипа.
+- **Level 2 (serve + HTTP)** — production-путь через `kilo serve` / `opencode serve` + OpenAPI. Не блокирует T4; отдельный тикет Phase 2.
 
 ## Out of scope
 

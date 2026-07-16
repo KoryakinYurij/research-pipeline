@@ -97,7 +97,10 @@ def _print_result(label: str, result: dict) -> None:
     text_len = len(result.get("text", ""))
     icon = "✅" if ok else "❌"
     stderr = f" stderr={result['stderr'][:60]}" if result.get("stderr") else ""
-    print(f"   {icon} {label}: {text_len} chars, exit={result['exit_code']}{stderr}", flush=True)
+    print(
+        f"   {icon} {label}: {text_len} chars, exit={result['exit_code']}{stderr}",
+        flush=True,
+    )
 
 
 def _format_raw_output(label: str, prompt: str, result: dict) -> str:
