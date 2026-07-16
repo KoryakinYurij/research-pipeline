@@ -1,4 +1,5 @@
 """Configuration via environment variables. No external dependencies — os.getenv is sufficient for this prototype."""
+
 import os
 from pathlib import Path
 
@@ -13,6 +14,7 @@ GEMMA_MODEL_ID: str = os.getenv("GEMMA_MODEL_ID", "gemma-4-31B-it")
 
 # CLI settings
 CLI_TIMEOUT: int = int(os.getenv("CLI_TIMEOUT", "120"))
+
 
 def ensure_dirs() -> None:
     """Create output directories if they don't exist.

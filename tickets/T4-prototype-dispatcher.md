@@ -3,6 +3,8 @@
 > **Labels:** `wayfinder:prototype` `hitl`
 >
 > **Blocked by:** T1 (Google AI Studio SDK), T2 (Kilocode & Opencode CLI), T3 (Project scaffolding), T5 (Model ID grilling)
+>
+> **Assigned to:** fixedius (2026-07-15)
 
 ## Question / Постановка
 
