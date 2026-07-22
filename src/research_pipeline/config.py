@@ -10,7 +10,7 @@ REPORTS_DIR = BASE_DIR / "reports"
 
 # Google AI Studio
 GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
-GEMMA_MODEL_ID: str = os.getenv("GEMMA_MODEL_ID", "gemma-4-31B-it")
+GEMMA_MODEL_ID: str = os.getenv("GEMMA_MODEL_ID", "gemma-4-31b-it")
 
 # CLI settings
 CLI_TIMEOUT: int = int(os.getenv("CLI_TIMEOUT", "120"))

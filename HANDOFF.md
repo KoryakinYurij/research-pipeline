@@ -122,3 +122,21 @@ uv run ruff check src/ tests/   # clean
 uv run pytest -v tests/          # 11 passed
 uv run dispatcher                # entry point (без --env-file если ключ не нужен)
 ```
+
+---
+
+# HANDOFF — Gemma 4 31B E2E Verification (2026-07-22)
+
+## Что сделано
+
+### E2E Verification with Gemma 4 31B
+- Добавлен шаблон и файл `.env` с `GOOGLE_API_KEY`.
+- Исправлено имя модели в `src/research_pipeline/config.py`: `gemma-4-31b-it` (в нижнем регистре, как того требует API Google AI Studio).
+- Запущен полный E2E прогон с генерацией кросс-саммари: `uv run --env-file .env python -u -m research_pipeline tasks/smoke.md`.
+- Результат: Kilocode (`pong`), Opencode (`pong`), Gemma 4 31B успешно создала аналитическое сравнение на русском языке в `reports/report-20260722-102854.md`.
+
+### Изменённые файлы
+- `src/research_pipeline/config.py`: исправление `GEMMA_MODEL_ID` на `gemma-4-31b-it`
+- `tasks/smoke.md`: создан быстрый тест-кейс
+- `.env.example`: обновлен с понятной инструкцией
+

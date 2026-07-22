@@ -19,3 +19,10 @@ wheels/
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated reports & outputs
+reports/*.md
+!reports/.gitkeep
+research/
+docs/research/
+

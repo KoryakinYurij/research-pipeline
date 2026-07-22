@@ -34,7 +34,7 @@
 
 - [T3 — Task: Project scaffolding](tickets/T3-project-scaffolding.md) — проект на VPS, uv-окружение, `src-layout` (`src/research_pipeline/`). Модули: `config.py` (os.getenv, без pydantic-settings), `clients/agent_cli.py`, `clients/gemma.py`. Точка входа: `uv run dispatcher`. Dev: `ruff`, `pytest`. `pydantic-settings` сознательно отклонён как оверкилл.
 
-- [T4 — Prototype: Dispatcher](tickets/T4-prototype-dispatcher.md) — ✅ E2E verified (2026-07-16). Smoke-тест «pong»: оба CLI отвечают корректно, `report-*.md` создаётся. Gemma-саммари пропущена без ключа — ожидаемо, код graceful. Проблема HANDOFF была в Layer B (basher-verification harness), не в коде. P1 hygiene: soft-fail на отсутствующий CLI (`FileNotFoundError`), process-group kill на таймаут (`os.killpg`), README fix (entry point + `--env-file`), unit-тесты NDJSON-парсинга (11 тестов).
+- [T4 — Prototype: Dispatcher](tickets/T4-prototype-dispatcher.md) — ✅ E2E verified (2026-07-16, Gemma verified 2026-07-22). Smoke-тест «pong»: оба CLI и Gemma 4 31B (`gemma-4-31b-it`) отвечают корректно, `report-*.md` с кросс-саммари создаётся. P1 hygiene: soft-fail на отсутствующий CLI (`FileNotFoundError`), process-group kill на таймаут (`os.killpg`), README fix (entry point + `--env-file`), unit-тесты NDJSON-парсинга (11 тестов).
 
 ## Not yet specified
 
