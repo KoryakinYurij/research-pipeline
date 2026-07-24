@@ -7,7 +7,7 @@
 Работающий прототип **Dispatcher** на Python: читает задачу из `task.md` → отправляет в Kilocode CLI и Opencode CLI → сохраняет оба сырых отчёта → через Gemma 4 31B (Google AI Studio) генерирует кросс-саммари (общее / различия / на что обратить внимание) → формирует финальный `report.md`.
 
 **✅ Destination достигнут (2026-07-16).** Дальнейшие шаги:
-- **Verifier (Phase 2)** — следующая wayfinder-карта: проверка качества отчётов, петля доисследования.
+- **Verifier (Phase 2)** — **charted:** [MAP-phase2.md](MAP-phase2.md) (MVP Verifier shipped & eval’d).
 - **Level 2 serve** — тикет в Not yet specified: замена subprocess на `kilo serve`/`opencode serve` + HTTP.
 - **Composer** — отдельный агент (Hermes + Minimax M3), генерирует `task.md`. Вне скоупа этой карты.
 
@@ -40,12 +40,12 @@
 
 - **Формат `task.md`** — будет определён когда появится Composer. Dispatcher'у достаточно читать содержимое как текст.
 - **Ретраи и degraded mode** — что делать если один CLI упал, а второй отработал. Soft-fail на `FileNotFoundError` уже есть; ретраи и fallback-стратегия — позже.
-- **Дизайн Verifier'а** — критерии качества, петля доисследования, формат финального документа. Исследовать в Phase 2.
+- **Дизайн Verifier'а** — критерии качества, петля доисследования, формат финального документа. Research: [`docs/research/verifier-phase2-findings.md`](docs/research/verifier-phase2-findings.md). Дальше: отдельная Phase 2 map + grilling.
 - **Автоматизация** — watch-режим, OACP-интеграция. После прототипа.
 - **Level 2 (serve + HTTP)** — production-путь через `kilo serve` / `opencode serve` + OpenAPI. Не блокирует T4; отдельный тикет Phase 2.
 
 ## Out of scope
 
 - **Composer (Hermes + Minimax M3)** — отдельный агент, который будет создавать задачи. Не входит в этот research pipeline.
-- **Verifier (Phase 2)** — будет отдельной картой после завершения Dispatcher-прототипа.
+- **Verifier (Phase 2)** — вынесено в [MAP-phase2.md](MAP-phase2.md); не реализуется внутри Phase 1.
 - **`pydantic-settings`** — предложен в ревью T3 как SOTA, отклонён: оверкилл для прототипа с 3 env-переменными. Подробное обоснование — в [T3 resolution](tickets/T3-project-scaffolding.md): scale mismatch (3 значения vs библиотека для сложных конфигов), читаемость плоских констант лучше, Google SDK сам валидирует ключ при вызове, соблюдение принципа «no abstractions for single-use code».
