@@ -53,6 +53,7 @@
 - Retry / degraded policy once `CLI_TIMEOUT` moves off the 120s boundary (finding D shows the same task flapping at that value). Overlaps the existing "Ретраи и degraded mode" fog on [MAP.md](MAP.md).
 - Observability beyond `step_finish` capture: per-run log, and which of the premortem's leading indicators are cheap to emit from Phase 1.
 - Whether Gemma stays the cross-summary model at all once the report contract ([P1H-T4](tickets/P1H-T4-report-contract-grilling.md)) is settled and input size changes.
+- `GEMMA_TIMEOUT = 60` с при `CLI_TIMEOUT = 600` с, при этом на вход Gemma идут до 50 KiB артефактов с каждого агента; соотношение не проверено на реальной нагрузке.
 
 ## Out of scope
 

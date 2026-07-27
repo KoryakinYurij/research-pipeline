@@ -50,5 +50,6 @@ Fix: persist `step_finish` per run (tokens, model id, wall time) alongside the r
   - `metrics.json`: создан (18.9 KiB). Массивы `events` непустые (по 10 событий `step_finish` у Kilocode и Opencode) с реальными данными о токенах (`total`, `input`, `output`, `reasoning`, `cache`), `wall_time_s` (65.63s / 97.20s), `sessionID` и snapshot hashes.
   - Покрытие `task.md`: первая секция cross-summary от Gemma имеет заголовок `### 1. Покрытие задания и что общего`.
   - Утечка ключей: `GOOGLE_API_KEY` не утекал в дочерние процессы (вычищается `_clean_env()`), греп по отчётам совпадений не обнаружил.
+- **2026-07-27 (Cost provenance fact):** Поле `cost` во всех событиях `step_finish` обоих агентов равно `0` — модели бесплатные, поэтому денежной базы Phase 1 не даёт. Токены (`total`/`input`/`output`/`reasoning`/`cache`) реальные и годятся как основа: потолок Phase 2 считается как токены × цена MiniMax (см. `reports/run-20260727-170708/metrics.json`).
 
 

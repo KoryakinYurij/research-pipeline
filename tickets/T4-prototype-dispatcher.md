@@ -4,7 +4,8 @@
 >
 > **Blocked by:** T1 (Google AI Studio SDK), T2 (Kilocode & Opencode CLI), T3 (Project scaffolding), T5 (Model ID grilling)
 >
-> **Assigned to:** fixedius (2026-07-15)
+> **Assigned to:** fixedius (2026-07-15)  
+> **Status:** resolved (2026-07-15)
 
 ## Question / Постановка
 
@@ -40,3 +41,9 @@ task.md → [opencode]  ─┘
 **Для прототипа можно упростить:** запускать CLI последовательно, без параллельности. Главное — чтобы пайплайн проходил от начала до конца.
 
 **Результат:** Работающий `uv run python src/dispatcher.py`, который можно запустить вручную.
+
+---
+
+## Resolution (2026-07-15)
+
+Прототип Dispatcher реализован и проверен (`src/research_pipeline/dispatcher.py`). Точка входа: `uv run dispatcher`. Позже усилен в Phase 1 Hardening (`reports/run-{timestamp}/`, изоляция CWD, NDJSON-метрики и Intake Gate).

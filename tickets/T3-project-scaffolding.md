@@ -3,7 +3,7 @@
 > **Labels:** `wayfinder:task` `afk`
 >
 > **Assigned to:** fixedius (2026-07-15)
-> **Status:** 🔄 reopened — post-review improvements applied 2026-07-15
+> **Status:** resolved (2026-07-15)
 
 ## Question / Checklist
 

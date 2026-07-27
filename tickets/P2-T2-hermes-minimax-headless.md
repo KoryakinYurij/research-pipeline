@@ -23,3 +23,5 @@ Determine:
 **Note (audit 2026-07-27, finding L):** Minimax pricing found here gives only half of the cost ceiling. The other half — what a Phase 1 run actually costs — is unmeasurable today: `agent_cli.py:154` discards the NDJSON `step_finish` events that carry tokens/cost. Pair with [P1H-T5](P1H-T5-provenance-and-run-ids.md) before promising a numeric ceiling.
 
 ## Comments
+
+- **2026-07-27 (Cost ceiling basis):** Поле `cost` во всех событиях `step_finish` обоих агентов равно `0` — модели бесплатные, поэтому денежной базы Phase 1 не даёт. Токены (`total`/`input`/`output`/`reasoning`/`cache`) реальные и годятся как основа: потолок Phase 2 считается как токены × цена MiniMax (см. `reports/run-20260727-170708/metrics.json`).
