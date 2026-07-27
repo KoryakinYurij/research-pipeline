@@ -23,7 +23,7 @@ cp .env.example .env
 |------------|----------|--------------|
 | `GOOGLE_API_KEY` | Ключ доступа к Google AI Studio API для Gemma 4 31B | *(обязательно для Gemma)* |
 | `GEMMA_MODEL_ID` | Идентификатор модели Gemma | `gemma-4-31b-it` |
-| `CLI_TIMEOUT` | Таймаут выполнения CLI-агентов (Kilocode / Opencode) в секундах | `120` |
+| `CLI_TIMEOUT` | Таймаут выполнения CLI-агентов (Kilocode / Opencode) в секундах | `600` |
 | `GEMMA_TIMEOUT` | Таймаут генерации кросс-саммари Gemma в секундах | `60` |
 
 

@@ -18,6 +18,8 @@ import os
 import signal
 import time
 
+from research_pipeline.config import CLI_TIMEOUT
+
 
 STREAM_LIMIT = (
     10 * 1024 * 1024
@@ -37,7 +39,7 @@ def _clean_env() -> dict[str, str]:
 
 async def run_kilocode(
     prompt: str,
-    timeout: int = 120,
+    timeout: int = CLI_TIMEOUT,
     model: str = "kilo/kilo-auto/free",
     cwd: str | None = None,
 ) -> dict:
@@ -54,7 +56,7 @@ async def run_kilocode(
 
 async def run_opencode(
     prompt: str,
-    timeout: int = 120,
+    timeout: int = CLI_TIMEOUT,
     model: str = "opencode/deepseek-v4-flash-free",
     cwd: str | None = None,
 ) -> dict:
