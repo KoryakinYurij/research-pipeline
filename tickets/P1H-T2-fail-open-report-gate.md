@@ -35,4 +35,10 @@ This *is* Layer A, applied at intake rather than post hoc. A gate that runs afte
 ## Comments
 
 - **2026-07-27 (Implementation):** Added `has_agent_outputs` intake gate in `dispatcher.py`. Requires `exit_code == 0` and non-empty text for both agents. Aborts pipeline execution with `RuntimeError` and `sys.exit(1)` when both agents fail or output empty text, preventing Gemma invocation and report generation. Unit tests added in `test_dispatcher.py`.
+- **2026-07-27 (E2E Measurement):** Зафиксирован замер первого E2E-прогона: Kilocode 65.6 с, Opencode 97.2 с при CLI_TIMEOUT=120 — 81% бюджета на демо-задаче. Значение CLI_TIMEOUT остаётся без изменений (решение владельца).
+- **2026-07-27 (Text preservation on timeout & CLI_TIMEOUT increase):**
+  - **Дефект потери текста:** В `agent_cli.py` при возникновении `TimeoutError` и `ValueError` ранее возвращалось `"text": ""`, что приводило к полной потере накопленного ответа агента. Починено: возвращается накопленный фрагмент `"text": "".join(text_parts)`, а в `stderr` добавляется пометка усечения по таймауту `(truncated)`. При этом `ok` остаётся `False`, решение о валидности принимает intake-gate.
+  - **Увеличение таймаута:** Значение `CLI_TIMEOUT` в `config.py` поднято со 120 до 600 с (решение владельца). Обоснование: разброс времени на идентичной задаче до 1.5× (Kilocode 65.6с → 42.9с, Opencode 97.2с → 60.3с), а демо-задача съедала 81% старого бюджета.
+
+
 

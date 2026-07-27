@@ -43,4 +43,12 @@ Fix: persist `step_finish` per run (tokens, model id, wall time) alongside the r
 ## Comments
 
 - **2026-07-27 (Implementation):** Implemented run scoping (`reports/run-{timestamp}/`) for raw outputs, `metrics.json`, and `report-{timestamp}.md`. Implemented `_parse_ndjson_metrics` and `wall_time_s` tracking using `time.monotonic()` in `agent_cli.py` and `dispatcher.py`. Unit tests added in `test_agent_cli.py` and `test_dispatcher.py`.
+- **2026-07-27 (E2E Verification):** Проведён реальный E2E-прогон пайплайна с созданием файлов на диске (задача в `tasks/task.md`: сравнение RLE и Huffman).
+  - `reports/run-20260727-170708/`: создана с подпапками `kilocode/` и `opencode/`.
+  - Изоляция CWD & `git status`: Kilocode записал файлы строго в `reports/run-20260727-170708/kilocode/` (`benchmark.py`, `summary.md`). Opencode проигнорировал CWD и намусорил в корень репозитория (`benchmark.py`, `summary.md`, `research-benchmarks/` отображаются не отслеживаемыми в `git status`).
+  - Секция `## Обнаруженные артефакты на диске`: В `report-20260727-170708.md` подсекция присутствует под `# Kilocode Output` с полным содержимым `benchmark.py` и `summary.md`. Артефакты Opencode не попали, т.к. `_enrich_output_with_artifacts` ищет строго внутри `opencode_cwd`.
+  - `metrics.json`: создан (18.9 KiB). Массивы `events` непустые (по 10 событий `step_finish` у Kilocode и Opencode) с реальными данными о токенах (`total`, `input`, `output`, `reasoning`, `cache`), `wall_time_s` (65.63s / 97.20s), `sessionID` и snapshot hashes.
+  - Покрытие `task.md`: первая секция cross-summary от Gemma имеет заголовок `### 1. Покрытие задания и что общего`.
+  - Утечка ключей: `GOOGLE_API_KEY` не утекал в дочерние процессы (вычищается `_clean_env()`), греп по отчётам совпадений не обнаружил.
+
 

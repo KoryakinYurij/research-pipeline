@@ -49,4 +49,9 @@ Answers to the three questions above, given by the owner in interview:
 
 - **2026-07-27 (Implementation):** Implemented per-agent CWD isolation (`run-{timestamp}/kilocode/` and `run-{timestamp}/opencode/`). Added environment scrubbing (`_clean_env`) in `agent_cli.py` removing API keys for free-tier CLIs. Parallelized CLI execution via `asyncio.gather`. Updated `MAP-phase2.md` notes. Unit tests added in `test_agent_cli.py` and `test_dispatcher.py`.
 - **2026-07-27 (Process defect, then correction):** This ticket was labelled `hitl` and the map said *"Do not code them ahead of the decision"*. It was implemented and closed **without the owner interview** — and finding J was resolved by *enabling* the parallelism it warned about, which is exactly the kind of call that needed the owner. Review caught it; the interview was then held and its answers are recorded above. They confirm what was built, so no code changed.
+- **2026-07-27 (E2E Verification - `--dir` isolation fix):** В `agent_cli.py` добавлен флаг `--dir <cwd>` в команды запуска Kilocode и Opencode CLI. Проведён повторный E2E-прогон `reports/run-20260727-171618/`:
+  - Оба агента записали артефакты (`benchmark.py`, `summary.md`) строго внутрь своих изоляционных директорий `reports/run-20260727-171618/kilocode/` и `reports/run-20260727-171618/opencode/`. Корень репозитория полностью чист (`git status` не содержит необрабатываемого мусора).
+  - Подсекция `## Обнаруженные артефакты на диске` в отчёте [`report-20260727-171618.md`](file:///home/fixedius/projects/research-pipeline/reports/run-20260727-171618/report-20260727-171618.md) появилась у ОБОИХ агентов (под `# Kilocode Output` и `# Opencode Output`).
+  - Зафиксированы значения `wall_time_s` из `metrics.json`: Kilocode = `42.91 s`, Opencode = `60.34 s`.
+
 
