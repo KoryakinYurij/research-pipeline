@@ -1,7 +1,7 @@
 # P1H-T4 — Grilling: What does a Phase 1 report actually contain?
 
 > **Labels:** `wayfinder:grilling` `hitl` `finding:G` `finding:H`  
-> **Status:** resolved (2026-07-27)  
+> **Status:** resolved (2026-07-27, owner interview) — see Decision below
 > **Blocked by:** —  
 > **Map:** [MAP-phase1-hardening.md](../MAP-phase1-hardening.md)
 
@@ -34,7 +34,17 @@ This breaks the Phase 2 seam directly: Layer B is specified to judge "vs `task.m
 
 **Result:** a written report contract — what sections exist, what material they contain, whether `task.md` is an input to the summary — recorded here and reflected in `CONTEXT.md` if terms change.
 
+## Decision (owner, 2026-07-27)
+
+Answers to the four questions above, given by the owner in interview:
+
+1. **The report becomes self-contained.** The pipeline collects what the agents wrote to disk and folds it into the report. The product is not renamed — it stays a cross-summary of two research efforts, and the pipeline is made to actually deliver that.
+2. **Collection is bounded per agent:** only the agent's own working directory is scanned, individual files under 100 KiB, `MAX_ENRICH_BYTES = 50 KiB` total per agent, the last artifact truncated rather than dropped. Code files (`benchmark.py`-style) are attached like any other artifact. Accepted tradeoff: on large tasks the tail is cut — visible in the report as `(содержимое обрезано)`.
+3. **Yes — `task.md` enters the cross-summary prompt**, and the system instruction now asks for task coverage first. Without this Phase 2's `task_coverage` dimension is not computable, so it was not treated as an open question.
+4. **`CONTEXT.md` glossary updated** for **Report** and **Cross-summary** to describe the built thing.
+
 ## Comments
 
-- **2026-07-27 (Resolution):** Passed `task.md` into `generate_cross_summary` prompt in `gemma.py` and updated system instruction for task coverage analysis. Added `_enrich_output_with_artifacts` in `dispatcher.py` to collect created files from agent workspaces (capped to 50 KiB per agent). Updated `CONTEXT.md` glossary definitions. Unit tests added in `test_dispatcher.py` and `test_gemma.py`. LGTM approved by Code Reviewer.
+- **2026-07-27 (Implementation):** Passed `task.md` into `generate_cross_summary` prompt in `gemma.py` and updated system instruction for task coverage analysis. Added `_enrich_output_with_artifacts` in `dispatcher.py` to collect created files from agent workspaces (capped to 50 KiB per agent). Updated `CONTEXT.md` glossary definitions. Unit tests added in `test_dispatcher.py` and `test_gemma.py`.
+- **2026-07-27 (Process defect, then correction):** This ticket was labelled `hitl` and the map said *"Do not code them ahead of the decision"*. It was implemented and closed **without the owner interview**. Review caught it; the interview was then held and its answers are recorded above. They happen to match what was built, so no code changed — but the decision is the owner's, recorded after the fact.
 

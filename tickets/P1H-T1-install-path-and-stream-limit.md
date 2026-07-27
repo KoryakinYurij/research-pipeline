@@ -35,5 +35,5 @@ A real research run emits long tool-result and reasoning lines; 64 KiB is not a 
 
 ## Comments
 
-- **2026-07-27 (Resolution):** Converted literal `\n` to LF newlines in `.env.example`. Passed `limit=10 * 1024 * 1024` (10 MiB) to `create_subprocess_exec` in `agent_cli.py`. Added `ValueError` handler in `_run_cli` and verified process group cleanup via `_cleanup_process`. Unit tests added in `test_agent_cli.py`. LGTM approved by Code Reviewer.
+- **2026-07-27 (Implementation):** Converted literal `\n` to LF newlines in `.env.example`. Passed `limit=10 * 1024 * 1024` (10 MiB) to `create_subprocess_exec` in `agent_cli.py`. Added `ValueError` handler in `_run_cli` and verified process group cleanup via `_cleanup_process`. Unit tests added in `test_agent_cli.py`.
 

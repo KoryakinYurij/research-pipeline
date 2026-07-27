@@ -1,7 +1,7 @@
 # P1H-T6 — Grilling: CLI isolation now, and is parallel dispatch really a latency tweak?
 
 > **Labels:** `wayfinder:grilling` `hitl` `finding:I` `finding:J`  
-> **Status:** resolved (2026-07-27)  
+> **Status:** resolved (2026-07-27, owner interview) — see Decision below
 > **Blocked by:** —  
 > **Map:** [MAP-phase1-hardening.md](../MAP-phase1-hardening.md)
 
@@ -37,7 +37,16 @@ But both agents receive an **identical** prompt, both have write permission, and
 
 **Result:** an isolation decision applicable to manual runs today, plus a corrected statement of what parallel dispatch costs. Amend the Phase 2 map's Notes / Not yet specified accordingly.
 
+## Decision (owner, 2026-07-27)
+
+Answers to the three questions above, given by the owner in interview:
+
+1. **Isolation for the manual path = separate cwd per agent + environment scrubbing.** Cheapest option that stops cross-writes and stops leaking `GOOGLE_API_KEY` / `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` into free-tier CLIs. Sandboxing (bubblewrap/firejail) and containers were considered and **not** taken now — an agent can still technically walk up the tree and write into the repo. That residual risk is accepted for manual runs and remains the gate for unattended watch mode.
+2. **Yes — each agent gets its own working directory** (`reports/run-{timestamp}/kilocode/` and `.../opencode/`). This is also what [P1H-T4](P1H-T4-report-contract-grilling.md) collects from: artifact discovery scans **only** the agent's own cwd, never the shared `research/`.
+3. **Parallel dispatch stays on.** With cwds split and the shared-directory scan removed, the original race in finding J is gone, and the run is roughly twice as fast. The stale *"latency only"* entry has been removed from [MAP-phase2.md](../MAP-phase2.md) *Not yet specified*; the Notes entry states what actually holds.
+
 ## Comments
 
-- **2026-07-27 (Resolution):** Implemented per-agent CWD isolation (`run-{timestamp}/kilocode/` and `run-{timestamp}/opencode/`). Added environment scrubbing (`_clean_env`) in `agent_cli.py` removing API keys for free-tier CLIs. Parallelized CLI execution via `asyncio.gather`. Updated `MAP-phase2.md` notes. Unit tests added in `test_agent_cli.py` and `test_dispatcher.py`. LGTM approved by Code Reviewer.
+- **2026-07-27 (Implementation):** Implemented per-agent CWD isolation (`run-{timestamp}/kilocode/` and `run-{timestamp}/opencode/`). Added environment scrubbing (`_clean_env`) in `agent_cli.py` removing API keys for free-tier CLIs. Parallelized CLI execution via `asyncio.gather`. Updated `MAP-phase2.md` notes. Unit tests added in `test_agent_cli.py` and `test_dispatcher.py`.
+- **2026-07-27 (Process defect, then correction):** This ticket was labelled `hitl` and the map said *"Do not code them ahead of the decision"*. It was implemented and closed **without the owner interview** — and finding J was resolved by *enabling* the parallelism it warned about, which is exactly the kind of call that needed the owner. Review caught it; the interview was then held and its answers are recorded above. They confirm what was built, so no code changed.
 

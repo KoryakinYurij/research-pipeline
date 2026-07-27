@@ -33,5 +33,7 @@ Fix: give the Gemma call an explicit wall-time bound and a soft-fail path (a cro
 
 ## Comments
 
-- **2026-07-27 (Resolution):** Added `MAX_PROMPT_BYTES = 120 KiB` limit and `OSError` exception handler in `agent_cli.py` to handle prompt length bounds before subprocess spawn. Wrapped Gemma API call in `asyncio.timeout(GEMMA_TIMEOUT)` in `gemma.py` raising `TimeoutError`. Unit tests added in `test_agent_cli.py` and `test_gemma.py`. LGTM approved by Code Reviewer.
+- **2026-07-27 (Implementation):** Added `MAX_PROMPT_BYTES = 120 KiB` limit and `OSError` exception handler in `agent_cli.py` to handle prompt length bounds before subprocess spawn. Wrapped Gemma API call in `asyncio.timeout(GEMMA_TIMEOUT)` in `gemma.py` raising `TimeoutError`. Unit tests added in `test_agent_cli.py` and `test_gemma.py`.
+- **2026-07-27 (deliberately not done):** Only the *minimum* half of the B fix landed — bound and soft-fail. **How each CLI reads a prompt from stdin or a file was never established**, so a task above 120 KiB is still refused rather than delivered. This matters once Phase 2 starts appending `## Follow-up` context. Carry into Phase 2 planning.
+- **2026-07-27 (residual on F):** `asyncio.timeout` frees the coroutine on schedule, but the blocking call runs in a thread that cannot be cancelled — measured: coroutine returns at 1 s, the process lingers until the underlying call finishes (6.1 s in a probe). The pipeline no longer hangs; interpreter shutdown still waits. In practice bounded by `google-genai`'s own timeout.
 
