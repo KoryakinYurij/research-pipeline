@@ -14,7 +14,6 @@ from pathlib import Path
 from research_pipeline.clients.agent_cli import run_kilocode, run_opencode
 from research_pipeline.clients.gemma import generate_cross_summary
 from research_pipeline.config import (
-    BASE_DIR,
     CLI_TIMEOUT,
     REPORTS_DIR,
     TASKS_DIR,
@@ -131,10 +130,8 @@ async def run_pipeline(task_path: Path | None = None) -> Path:
         )
         print(f"   ❌ Failed: {e}", flush=True)
 
-
     # 7. Write final report
     report_path = run_dir / f"report-{timestamp}.md"
-    root_report_path = REPORTS_DIR / f"report-{timestamp}.md"
 
     report = (
         f"# Cross-Summary\n\n"
@@ -148,17 +145,14 @@ async def run_pipeline(task_path: Path | None = None) -> Path:
         f"# Opencode Output\n\n"
         f"_exit_code: {opencode_result.get('exit_code')}, "
         f"errors: {'yes' if opencode_result.get('stderr') else 'none'}_\n\n"
-
         f"{opencode_text}\n\n"
         f"---\n\n"
         f"_Generated: {timestamp} UTC | Task: {task_path.name}_\n"
     )
     report_path.write_text(report, encoding="utf-8")
-    root_report_path.write_text(report, encoding="utf-8")
     print(f"\n✅ Report: {report_path}", flush=True)
 
     return report_path
-
 
 
 def _print_result(label: str, result: dict) -> None:
@@ -185,49 +179,66 @@ def _format_raw_output(label: str, prompt: str, result: dict) -> str:
     )
 
 
-def _enrich_output_with_artifacts(text: str, agent_cwd: Path | None = None) -> str:
-    """Enrich agent chat text output with discovered files from agent workspace or research/."""
-    text_clean = text.strip()
-    dirs_to_check = []
-    if agent_cwd and agent_cwd.exists():
-        dirs_to_check.append(agent_cwd)
-    research_dir = BASE_DIR / "research"
-    if research_dir.exists():
-        dirs_to_check.append(research_dir)
+MAX_ENRICH_BYTES = 50 * 1024  # 50 KiB total cap for attached artifacts per agent
 
-    if not dirs_to_check:
+
+def _enrich_output_with_artifacts(text: str, agent_cwd: Path | None = None) -> str:
+    """Enrich agent text output with discovered files strictly from its own agent_cwd.
+
+    Bounded to MAX_ENRICH_BYTES total to prevent prompt explosion for Gemma.
+    Does NOT scan shared research/ directory to preserve per-agent CWD isolation.
+    """
+    text_clean = text.strip()
+    if not agent_cwd or not agent_cwd.exists():
         return text_clean
 
     artifact_sections = []
-    seen_paths = set()
+    total_bytes = 0
 
-    for search_dir in dirs_to_check:
-        for p in sorted(search_dir.rglob("*")):
-            if (
-                p.is_file()
-                and p.suffix in (".md", ".py", ".txt", ".json")
-                and p.stat().st_size < 100 * 1024
-                and p not in seen_paths
-            ):
-                seen_paths.add(p)
-                try:
-                    rel = p.relative_to(BASE_DIR)
-                except ValueError:
-                    rel = p.name
-                content = p.read_text(encoding="utf-8", errors="replace").strip()
-                if content and content not in text_clean:
-                    artifact_sections.append(
-                        f"\n\n### Артефакт: `{rel}`\n\n```\n{content}\n```"
+    for p in sorted(agent_cwd.rglob("*")):
+        if (
+            p.is_file()
+            and p.suffix in (".md", ".py", ".txt", ".json")
+            and p.stat().st_size < 100 * 1024
+        ):
+            try:
+                rel = p.relative_to(agent_cwd)
+            except ValueError:
+                rel = p.name
+            content = p.read_text(encoding="utf-8", errors="replace").strip()
+            if not content or content in text_clean:
+                continue
+
+            content_bytes = len(content.encode("utf-8"))
+            if total_bytes + content_bytes > MAX_ENRICH_BYTES:
+                remaining = MAX_ENRICH_BYTES - total_bytes
+                if remaining > 100:
+                    truncated = (
+                        content.encode("utf-8")[:remaining].decode(
+                            "utf-8", errors="ignore"
+                        )
+                        + "\n... [truncated]"
                     )
+                    artifact_sections.append(
+                        f"\n\n### Артефакт: `{rel}` (содержимое обрезано)\n\n```\n{truncated}\n```"
+                    )
+                break
+
+            total_bytes += content_bytes
+            artifact_sections.append(
+                f"\n\n### Артефакт: `{rel}`\n\n```\n{content}\n```"
+            )
 
     if artifact_sections:
-        return text_clean + "\n\n## Обнаруженные артефакты на диске\n" + "".join(artifact_sections)
+        return (
+            text_clean
+            + "\n\n## Обнаруженные артефакты на диске\n"
+            + "".join(artifact_sections)
+        )
     return text_clean
 
 
-
 def main() -> None:
-
     """Entry point for `uv run dispatcher` or `python -m research_pipeline`."""
     task_path = None
     if len(sys.argv) > 1:
@@ -241,7 +252,6 @@ def main() -> None:
     except Exception as e:
         print(f"\n❌ Pipeline failed: {e}", file=sys.stderr, flush=True)
         sys.exit(1)
-
 
 
 if __name__ == "__main__":

@@ -36,25 +36,34 @@ class TestHasAgentOutputs:
         assert has_agent_outputs(kilo, opencode) is True
 
 
-
 class TestIntakeGateIntegration:
     """Test that run_pipeline fails fast and produces no report when both agents fail."""
 
     @pytest.mark.anyio
-    async def test_run_pipeline_aborts_when_both_agents_empty(self, tmp_path: Path, monkeypatch) -> None:
+    async def test_run_pipeline_aborts_when_both_agents_empty(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
         task_file = tmp_path / "task.md"
         task_file.write_text("Smoke test task", encoding="utf-8")
 
-        mock_kilo = AsyncMock(return_value={"text": "", "ok": False, "exit_code": -1, "stderr": "Failed"})
-        mock_opencode = AsyncMock(return_value={"text": "", "ok": False, "exit_code": -1, "stderr": "Failed"})
+        mock_kilo = AsyncMock(
+            return_value={"text": "", "ok": False, "exit_code": -1, "stderr": "Failed"}
+        )
+        mock_opencode = AsyncMock(
+            return_value={"text": "", "ok": False, "exit_code": -1, "stderr": "Failed"}
+        )
         mock_summary = AsyncMock()
 
         monkeypatch.setattr("research_pipeline.dispatcher.run_kilocode", mock_kilo)
         monkeypatch.setattr("research_pipeline.dispatcher.run_opencode", mock_opencode)
-        monkeypatch.setattr("research_pipeline.dispatcher.generate_cross_summary", mock_summary)
+        monkeypatch.setattr(
+            "research_pipeline.dispatcher.generate_cross_summary", mock_summary
+        )
         monkeypatch.setattr("research_pipeline.dispatcher.REPORTS_DIR", tmp_path)
 
-        with pytest.raises(RuntimeError, match="Both CLI agents failed or returned empty outputs"):
+        with pytest.raises(
+            RuntimeError, match="Both CLI agents failed or returned empty outputs"
+        ):
             await run_pipeline(task_file)
 
         # Verify Gemma was NOT called
@@ -69,24 +78,38 @@ class TestEnrichOutputWithArtifacts:
     """Test discovering and attaching research/ artifacts to agent text."""
 
     def test_enrich_output_with_artifacts_attaches_discovered_files(
-        self, tmp_path: Path, monkeypatch
+        self, tmp_path: Path
     ) -> None:
         from research_pipeline.dispatcher import _enrich_output_with_artifacts
 
-        research_dir = tmp_path / "research"
-        research_dir.mkdir(parents=True)
-        (research_dir / "report.md").write_text(
+        agent_cwd = tmp_path / "kilocode"
+        agent_cwd.mkdir(parents=True)
+        (agent_cwd / "report.md").write_text(
             "# Detailed Benchmarks\nSorting is fast.", encoding="utf-8"
         )
 
-        monkeypatch.setattr("research_pipeline.dispatcher.BASE_DIR", tmp_path)
-
-        result = _enrich_output_with_artifacts("Agent summary chat text")
+        result = _enrich_output_with_artifacts("Agent summary chat text", agent_cwd)
 
         assert "Agent summary chat text" in result
         assert "## Обнаруженные артефакты на диске" in result
-        assert "### Артефакт: `research/report.md`" in result
+        assert "### Артефакт: `report.md`" in result
         assert "Sorting is fast." in result
+
+    def test_enrich_output_does_not_scan_shared_dir(self, tmp_path: Path) -> None:
+        from research_pipeline.dispatcher import _enrich_output_with_artifacts
+
+        shared_research = tmp_path / "research"
+        shared_research.mkdir(parents=True)
+        (shared_research / "leaked.md").write_text(
+            "Secret shared data", encoding="utf-8"
+        )
+
+        agent_cwd = tmp_path / "opencode"
+        agent_cwd.mkdir(parents=True)
+
+        result = _enrich_output_with_artifacts("Opencode chat", agent_cwd)
+        assert "Secret shared data" not in result
+        assert "## Обнаруженные артефакты на диске" not in result
 
 
 class TestRunMetricsAndScope:
@@ -123,7 +146,9 @@ class TestRunMetricsAndScope:
 
         monkeypatch.setattr("research_pipeline.dispatcher.run_kilocode", mock_kilo)
         monkeypatch.setattr("research_pipeline.dispatcher.run_opencode", mock_opencode)
-        monkeypatch.setattr("research_pipeline.dispatcher.generate_cross_summary", mock_summary)
+        monkeypatch.setattr(
+            "research_pipeline.dispatcher.generate_cross_summary", mock_summary
+        )
         monkeypatch.setattr("research_pipeline.dispatcher.REPORTS_DIR", tmp_path)
 
         report_path = await run_pipeline(task_file)
@@ -149,6 +174,3 @@ class TestRunMetricsAndScope:
         assert meta["kilocode"]["ok"] is True
         assert meta["kilocode"]["metrics"]["wall_time_s"] == 1.2
         assert meta["opencode"]["metrics"]["wall_time_s"] == 1.5
-
-
-
