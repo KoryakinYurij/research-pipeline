@@ -24,7 +24,7 @@ STREAM_LIMIT = (
 )  # 10 MiB limit for NDJSON lines (default asyncio limit is 64 KiB)
 MAX_PROMPT_BYTES = (
     120 * 1024
-)  # 120 KiB limit for prompt CLI argument (below OS MAX_ARG_STRLEN 128 KiB)
+)  # 120 KiB — headroom under the measured single-argv ceiling (131072 B on Linux)
 
 
 def _clean_env() -> dict[str, str]:
