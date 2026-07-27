@@ -41,3 +41,6 @@ Fix: persist `step_finish` per run (tokens, model id, wall time) alongside the r
 **Result:** two consecutive runs keep both sets of raw outputs; each run leaves a machine-readable record of tokens/model/wall-time per CLI. Phase 2 can then compute a real ceiling.
 
 ## Comments
+
+- **2026-07-27 (Resolution):** Implemented run scoping (`reports/run-{timestamp}/`) for raw outputs, `metrics.json`, and `report-{timestamp}.md`. Implemented `_parse_ndjson_metrics` and `wall_time_s` tracking using `time.monotonic()` in `agent_cli.py` and `dispatcher.py`. Unit tests added in `test_agent_cli.py` and `test_dispatcher.py`. LGTM approved by Code Reviewer.
+

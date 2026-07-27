@@ -35,3 +35,6 @@ This breaks the Phase 2 seam directly: Layer B is specified to judge "vs `task.m
 **Result:** a written report contract — what sections exist, what material they contain, whether `task.md` is an input to the summary — recorded here and reflected in `CONTEXT.md` if terms change.
 
 ## Comments
+
+- **2026-07-27 (Resolution):** Passed `task.md` into `generate_cross_summary` prompt in `gemma.py` and updated system instruction for task coverage analysis. Added `_enrich_output_with_artifacts` in `dispatcher.py` to collect created files from agent workspaces (capped to 50 KiB per agent). Updated `CONTEXT.md` glossary definitions. Unit tests added in `test_dispatcher.py` and `test_gemma.py`. LGTM approved by Code Reviewer.
+

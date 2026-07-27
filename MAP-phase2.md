@@ -55,7 +55,7 @@
 - Optional **short spike**: DeepEval/G-Eval (or similar) vs hand-rolled Layer B — only if it saves real work; default remains Hermes path unless spike wins. Not a destination change.
 - Automation / watch / OACP for Verifier (after isolation + cost ceiling).
 - Level 2 `kilo serve` / `opencode serve` (Phase 1 fog; still out of this destination unless reopened).
-- Parallel CLI dispatch (latency only; out of critical path).
+
 
 ## Out of scope
 

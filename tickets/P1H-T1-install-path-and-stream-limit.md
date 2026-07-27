@@ -34,3 +34,6 @@ A real research run emits long tool-result and reasoning lines; 64 KiB is not a 
 **Result:** `cp .env.example .env` yields a parseable file with a real key slot; an oversized NDJSON line soft-fails with the child process killed, covered by a unit test.
 
 ## Comments
+
+- **2026-07-27 (Resolution):** Converted literal `\n` to LF newlines in `.env.example`. Passed `limit=10 * 1024 * 1024` (10 MiB) to `create_subprocess_exec` in `agent_cli.py`. Added `ValueError` handler in `_run_cli` and verified process group cleanup via `_cleanup_process`. Unit tests added in `test_agent_cli.py`. LGTM approved by Code Reviewer.
+

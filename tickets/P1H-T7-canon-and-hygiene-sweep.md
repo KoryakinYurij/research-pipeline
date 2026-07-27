@@ -33,3 +33,6 @@ Related, and for the owner rather than this ticket: [`docs/premortem-long-run.md
 **Result:** `docs/research/` tracked in git; three env vars documented; the shim replaced; the test question and the P2-T4 label settled.
 
 ## Comments
+
+- **2026-07-27 (Resolution):** Anchored `/research/` in `.gitignore` and removed `docs/research/` from ignore list. Updated model ID casing to `gemma-4-31b-it` in `docs/research/T1-google-ai-studio-sdk-findings.md`. Replaced custom `asyncio_to_thread` shim with stdlib `asyncio.to_thread` in `gemma.py`. Documented all 4 env vars in `README.md`. Updated P2-T4 label to `afk`. LGTM approved by Code Reviewer.
+

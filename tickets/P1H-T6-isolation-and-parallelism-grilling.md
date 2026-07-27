@@ -38,3 +38,6 @@ But both agents receive an **identical** prompt, both have write permission, and
 **Result:** an isolation decision applicable to manual runs today, plus a corrected statement of what parallel dispatch costs. Amend the Phase 2 map's Notes / Not yet specified accordingly.
 
 ## Comments
+
+- **2026-07-27 (Resolution):** Implemented per-agent CWD isolation (`run-{timestamp}/kilocode/` and `run-{timestamp}/opencode/`). Added environment scrubbing (`_clean_env`) in `agent_cli.py` removing API keys for free-tier CLIs. Parallelized CLI execution via `asyncio.gather`. Updated `MAP-phase2.md` notes. Unit tests added in `test_agent_cli.py` and `test_dispatcher.py`. LGTM approved by Code Reviewer.
+

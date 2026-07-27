@@ -32,3 +32,6 @@ Fix: give the Gemma call an explicit wall-time bound and a soft-fail path (a cro
 **Result:** an oversized task and a hanging Gemma call each fail predictably and soft, with a test for each.
 
 ## Comments
+
+- **2026-07-27 (Resolution):** Added `MAX_PROMPT_BYTES = 120 KiB` limit and `OSError` exception handler in `agent_cli.py` to handle prompt length bounds before subprocess spawn. Wrapped Gemma API call in `asyncio.timeout(GEMMA_TIMEOUT)` in `gemma.py` raising `TimeoutError`. Unit tests added in `test_agent_cli.py` and `test_gemma.py`. LGTM approved by Code Reviewer.
+
