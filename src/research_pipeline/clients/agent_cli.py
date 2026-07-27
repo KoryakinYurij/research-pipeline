@@ -45,7 +45,10 @@ async def run_kilocode(
 
     Returns: {"text": str, "exit_code": int, "stderr": str, "ok": bool}
     """
-    cmd = ["kilo", "run", "--auto", "--model", model, "--format", "json", prompt]
+    cmd = ["kilo", "run"]
+    if cwd:
+        cmd.extend(["--dir", cwd])
+    cmd.extend(["--auto", "--model", model, "--format", "json", prompt])
     return await _run_cli(cmd, timeout, cwd=cwd)
 
 
@@ -59,16 +62,19 @@ async def run_opencode(
 
     Returns: {"text": str, "exit_code": int, "stderr": str, "ok": bool}
     """
-    cmd = [
-        "opencode",
-        "run",
-        "--dangerously-skip-permissions",
-        "-m",
-        model,
-        "--format",
-        "json",
-        prompt,
-    ]
+    cmd = ["opencode", "run"]
+    if cwd:
+        cmd.extend(["--dir", cwd])
+    cmd.extend(
+        [
+            "--dangerously-skip-permissions",
+            "-m",
+            model,
+            "--format",
+            "json",
+            prompt,
+        ]
+    )
     return await _run_cli(cmd, timeout, cwd=cwd)
 
 
@@ -186,6 +192,7 @@ async def _run_cli(
             "ok": False,
             "metrics": {"wall_time_s": wall_time_s, "events": metrics_events},
         }
+
 
     stderr_bytes = await stderr_task
     stderr_str = stderr_bytes.decode("utf-8", errors="replace").strip()

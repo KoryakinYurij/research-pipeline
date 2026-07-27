@@ -122,6 +122,7 @@ class TestStreamLimitAndErrorHandling:
         assert "Spawn aborted" in res["stderr"]
 
 
+
 class TestParseNdjsonMetrics:
     """Test extracting metrics and finish events from NDJSON stream."""
 
@@ -167,3 +168,73 @@ class TestCleanEnv:
         assert "GEMINI_API_KEY" not in cleaned
         assert "ANTHROPIC_API_KEY" not in cleaned
         assert cleaned.get("PATH") == "/usr/bin"
+
+
+class TestCwdDirFlag:
+    """Test --dir flag inclusion when cwd is passed vs omitted."""
+
+    @pytest.mark.anyio
+    async def test_run_kilocode_includes_dir_when_cwd_set(self, monkeypatch) -> None:
+        from research_pipeline.clients import agent_cli
+
+        captured_cmd = []
+
+        async def mock_run_cli(cmd, timeout, cwd=None, env=None):
+            nonlocal captured_cmd
+            captured_cmd = cmd
+            return {"text": "ok", "exit_code": 0, "stderr": None, "ok": True}
+
+        monkeypatch.setattr(agent_cli, "_run_cli", mock_run_cli)
+
+        await agent_cli.run_kilocode("test prompt", cwd="/tmp/kilo_dir")
+        assert captured_cmd[0:3] == ["kilo", "run", "--dir"]
+        assert "/tmp/kilo_dir" in captured_cmd
+
+    @pytest.mark.anyio
+    async def test_run_kilocode_omits_dir_when_cwd_none(self, monkeypatch) -> None:
+        from research_pipeline.clients import agent_cli
+
+        captured_cmd = []
+
+        async def mock_run_cli(cmd, timeout, cwd=None, env=None):
+            nonlocal captured_cmd
+            captured_cmd = cmd
+            return {"text": "ok", "exit_code": 0, "stderr": None, "ok": True}
+
+        monkeypatch.setattr(agent_cli, "_run_cli", mock_run_cli)
+
+        await agent_cli.run_kilocode("test prompt", cwd=None)
+        assert "--dir" not in captured_cmd
+
+    @pytest.mark.anyio
+    async def test_run_opencode_includes_dir_when_cwd_set(self, monkeypatch) -> None:
+        from research_pipeline.clients import agent_cli
+
+        captured_cmd = []
+
+        async def mock_run_cli(cmd, timeout, cwd=None, env=None):
+            nonlocal captured_cmd
+            captured_cmd = cmd
+            return {"text": "ok", "exit_code": 0, "stderr": None, "ok": True}
+
+        monkeypatch.setattr(agent_cli, "_run_cli", mock_run_cli)
+
+        await agent_cli.run_opencode("test prompt", cwd="/tmp/open_dir")
+        assert captured_cmd[0:3] == ["opencode", "run", "--dir"]
+        assert "/tmp/open_dir" in captured_cmd
+
+    @pytest.mark.anyio
+    async def test_run_opencode_omits_dir_when_cwd_none(self, monkeypatch) -> None:
+        from research_pipeline.clients import agent_cli
+
+        captured_cmd = []
+
+        async def mock_run_cli(cmd, timeout, cwd=None, env=None):
+            nonlocal captured_cmd
+            captured_cmd = cmd
+            return {"text": "ok", "exit_code": 0, "stderr": None, "ok": True}
+
+        monkeypatch.setattr(agent_cli, "_run_cli", mock_run_cli)
+
+        await agent_cli.run_opencode("test prompt", cwd=None)
+        assert "--dir" not in captured_cmd
