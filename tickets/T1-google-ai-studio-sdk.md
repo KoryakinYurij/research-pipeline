@@ -24,7 +24,7 @@
 
 **Ключевые выводы:**
 
-1. **Model ID:** `gemma-4-31B-it` — модель реально существует, выпущена Google DeepMind 2 апреля 2026. 31B параметров, 256K контекст, доступна через Google AI Studio API.
+1. **Model ID:** `gemma-4-31b-it` — модель реально существует, выпущена Google DeepMind 2 апреля 2026. 31B параметров, 256K контекст, доступна через Google AI Studio API. **Правка 2026-07-27:** здесь изначально было записано `gemma-4-31B-it`; API требует **строчную `b`** и на `31B` отвечает `400 INVALID_ARGUMENT: unexpected model name format` (см. `reports/report-20260722-102338.md`).
 2. **SDK:** `google-genai` (новый унифицированный SDK). Старый `google-generativeai` — deprecated.
 3. **Аутентификация:** `GOOGLE_API_KEY` env var, SDK подхватывает автоматически.
 4. **Системный промпт:** через `system_instruction` в конфиге `generate_content()`.

@@ -12,7 +12,7 @@
 При повторном исследовании выяснилось: пользователь имел в виду **Gemma 4 31B** (не Gemini!). 
 
 - **Gemma 4 31B** — реальная модель Google DeepMind, выпущена 2 апреля 2026.
-- **Model ID:** `gemma-4-31B-it`
+- **Model ID:** `gemma-4-31b-it` (**строчная `b`** — правка 2026-07-27; вариант `gemma-4-31B-it` API отвергает)
 - **31B параметров**, dense-архитектура, **256K контекст**
 - **Доступна через Google AI Studio API** (тот же SDK `google-genai`)
 - Поддерживает function-calling, structured JSON, system instructions

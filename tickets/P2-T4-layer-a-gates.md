@@ -1,6 +1,6 @@
 # P2-T4 — Prototype: Layer A programmatic gates
 
-> **Labels:** `wayfinder:prototype` `hitl`  
+> **Labels:** `wayfinder:prototype` `afk`  
 > **Status:** open  
 > **Blocked by:** —  
 > **Map:** [MAP-phase2.md](../MAP-phase2.md)

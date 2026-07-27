@@ -8,14 +8,24 @@
 uv sync
 ```
 
-Создать `.env` из `.env.example` и указать `GOOGLE_API_KEY`.
+Создать `.env` из `.env.example` и указать переменные окружения.
 
 `uv run` не загружает `.env` автоматически — используй `--env-file`:
 
 ```bash
 cp .env.example .env
-# отредактировать .env → GOOGLE_API_KEY=...
+# отредактировать .env
 ```
+
+### Переменные окружения (`.env`)
+
+| Переменная | Описание | По умолчанию |
+|------------|----------|--------------|
+| `GOOGLE_API_KEY` | Ключ доступа к Google AI Studio API для Gemma 4 31B | *(обязательно для Gemma)* |
+| `GEMMA_MODEL_ID` | Идентификатор модели Gemma | `gemma-4-31b-it` |
+| `CLI_TIMEOUT` | Таймаут выполнения CLI-агентов (Kilocode / Opencode) в секундах | `120` |
+| `GEMMA_TIMEOUT` | Таймаут генерации кросс-саммари Gemma в секундах | `60` |
+
 
 ## Запуск
 

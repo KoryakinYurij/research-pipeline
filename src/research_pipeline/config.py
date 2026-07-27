@@ -12,8 +12,10 @@ REPORTS_DIR = BASE_DIR / "reports"
 GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
 GEMMA_MODEL_ID: str = os.getenv("GEMMA_MODEL_ID", "gemma-4-31b-it")
 
-# CLI settings
+# CLI & LLM settings
 CLI_TIMEOUT: int = int(os.getenv("CLI_TIMEOUT", "120"))
+GEMMA_TIMEOUT: int = int(os.getenv("GEMMA_TIMEOUT", "60"))
+
 
 
 def ensure_dirs() -> None:

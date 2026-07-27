@@ -16,25 +16,40 @@ import asyncio
 import json
 import os
 import signal
+import time
+
+
+
+STREAM_LIMIT = 10 * 1024 * 1024  # 10 MiB limit for NDJSON lines (default asyncio limit is 64 KiB)
+
+
+def _clean_env() -> dict[str, str]:
+    """Return sanitized environment dict removing sensitive API keys for CLI subprocesses."""
+    env = dict(os.environ)
+    for key in ("GOOGLE_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY"):
+        env.pop(key, None)
+    return env
 
 
 async def run_kilocode(
     prompt: str,
     timeout: int = 120,
     model: str = "kilo/kilo-auto/free",
+    cwd: str | None = None,
 ) -> dict:
     """Run kilo with --format json, capturing NDJSON text chunks.
 
     Returns: {"text": str, "exit_code": int, "stderr": str, "ok": bool}
     """
     cmd = ["kilo", "run", "--auto", "--model", model, "--format", "json", prompt]
-    return await _run_cli(cmd, timeout)
+    return await _run_cli(cmd, timeout, cwd=cwd)
 
 
 async def run_opencode(
     prompt: str,
     timeout: int = 120,
     model: str = "opencode/deepseek-v4-flash-free",
+    cwd: str | None = None,
 ) -> dict:
     """Run opencode with --format json, capturing NDJSON text chunks.
 
@@ -50,24 +65,37 @@ async def run_opencode(
         "json",
         prompt,
     ]
-    return await _run_cli(cmd, timeout)
+    return await _run_cli(cmd, timeout, cwd=cwd)
 
 
-async def _run_cli(cmd: list[str], timeout: int) -> dict:
-    """Execute CLI, parse NDJSON stdout, collect text chunks.
+async def _run_cli(
+    cmd: list[str],
+    timeout: int,
+    cwd: str | None = None,
+    env: dict[str, str] | None = None,
+) -> dict:
+    """Execute CLI, parse NDJSON stdout, collect text chunks and cost/token metrics.
 
     stdin=DEVNULL is critical — without it both CLIs hang waiting for input.
     stderr is read concurrently to avoid pipe-buffer deadlock.
-    start_new_session + os.killpg on timeout ensures no orphaned child processes.
+    start_new_session + os.killpg on timeout or stream error ensures no orphaned child processes.
     """
+    start_time = time.monotonic()
+    metrics_events: list[dict] = []
+    effective_env = env if env is not None else _clean_env()
+
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdin=asyncio.subprocess.DEVNULL,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            limit=STREAM_LIMIT,
             start_new_session=True,
+            cwd=cwd,
+            env=effective_env,
         )
+
     except FileNotFoundError:
         binary = cmd[0]
         return {
@@ -75,6 +103,16 @@ async def _run_cli(cmd: list[str], timeout: int) -> dict:
             "exit_code": -1,
             "stderr": f"CLI not found: {binary}. Is it installed?",
             "ok": False,
+            "metrics": {"wall_time_s": 0.0, "events": []},
+        }
+    except OSError as e:
+        binary = cmd[0]
+        return {
+            "text": "",
+            "exit_code": -1,
+            "stderr": f"Failed to spawn CLI {binary}: {e}",
+            "ok": False,
+            "metrics": {"wall_time_s": 0.0, "events": []},
         }
 
     # Read stderr concurrently to avoid pipe-buffer deadlock
@@ -98,37 +136,71 @@ async def _run_cli(cmd: list[str], timeout: int) -> dict:
                 except json.JSONDecodeError:
                     continue
 
-                # Real NDJSON: {"type":"text", "part":{"text":"..."}}
+                # Real NDJSON text chunk: {"type":"text", "part":{"text":"..."}}
                 chunk = _parse_ndjson_text(obj)
                 if chunk:
                     text_parts.append(chunk)
 
+                # Collect metrics/step_finish events if present
+                metrics_info = _parse_ndjson_metrics(obj)
+                if metrics_info:
+                    metrics_events.append(metrics_info)
+
             await proc.wait()
 
     except TimeoutError:
-        try:
-            pgid = os.getpgid(proc.pid)
-            os.killpg(pgid, signal.SIGKILL)
-        except (ProcessLookupError, OSError):
-            proc.kill()
-        await proc.wait()
-        stderr_task.cancel()
+        await _cleanup_process(proc, stderr_task)
+        wall_time_s = round(time.monotonic() - start_time, 2)
         return {
             "text": "",
             "exit_code": -1,
             "stderr": f"Timeout after {timeout}s",
             "ok": False,
+            "metrics": {"wall_time_s": wall_time_s, "events": metrics_events},
+        }
+    except ValueError as e:
+        await _cleanup_process(proc, stderr_task)
+        wall_time_s = round(time.monotonic() - start_time, 2)
+        return {
+            "text": "",
+            "exit_code": -1,
+            "stderr": f"Stream read error: {e}",
+            "ok": False,
+            "metrics": {"wall_time_s": wall_time_s, "events": metrics_events},
         }
 
     stderr_bytes = await stderr_task
     stderr_str = stderr_bytes.decode("utf-8", errors="replace").strip()
+    text = "".join(text_parts)
+    exit_code = proc.returncode if proc.returncode is not None else -1
+    wall_time_s = round(time.monotonic() - start_time, 2)
 
     return {
-        "text": "".join(text_parts),
-        "exit_code": proc.returncode or 0,
+        "text": text,
+        "exit_code": exit_code,
         "stderr": stderr_str or None,
-        "ok": (proc.returncode == 0),
+        "ok": (exit_code == 0 and bool(text.strip())),
+        "metrics": {
+            "wall_time_s": wall_time_s,
+            "events": metrics_events,
+        },
     }
+
+
+
+
+async def _cleanup_process(
+    proc: asyncio.subprocess.Process, stderr_task: asyncio.Task
+) -> None:
+    """Kill process group and cancel stderr reader task safely."""
+    try:
+        pgid = os.getpgid(proc.pid)
+        os.killpg(pgid, signal.SIGKILL)
+    except (ProcessLookupError, OSError):
+        proc.kill()
+    await proc.wait()
+    stderr_task.cancel()
+
 
 
 async def _read_stream(stream: asyncio.StreamReader) -> bytes:
@@ -160,3 +232,43 @@ def _parse_ndjson_text(obj: dict) -> str | None:
     if isinstance(chunk, str):
         return chunk
     return None
+
+
+def _parse_ndjson_metrics(obj: dict) -> dict | None:
+    """Extract metrics (tokens, model, cost, step_finish) from NDJSON object if present."""
+    if not isinstance(obj, dict):
+        return None
+
+    obj_type = obj.get("type")
+    part = obj.get("part") if isinstance(obj.get("part"), dict) else {}
+
+    is_finish = (
+        obj_type in ("step_finish", "finish")
+        or part.get("type") in ("step-finish", "finish")
+    )
+    has_stats = any(
+        k in obj or k in part for k in ("tokens", "usage", "cost", "model", "stats")
+    )
+
+    if not (is_finish or has_stats):
+        return None
+
+    metrics: dict = {}
+    if obj_type:
+        metrics["type"] = obj_type
+
+    for source in (part, obj):
+        if "model" in source and "model" not in metrics:
+            metrics["model"] = source["model"]
+        if "tokens" in source and "tokens" not in metrics:
+            metrics["tokens"] = source["tokens"]
+        if "usage" in source and "usage" not in metrics:
+            metrics["usage"] = source["usage"]
+        if "cost" in source and "cost" not in metrics:
+            metrics["cost"] = source["cost"]
+
+    if is_finish and part:
+        metrics["part"] = part
+
+    return metrics if metrics else None
+

@@ -23,6 +23,7 @@ Thumbs.db
 # Generated reports & outputs
 reports/*.md
 !reports/.gitkeep
-research/
-docs/research/
+/research/
+
+
 

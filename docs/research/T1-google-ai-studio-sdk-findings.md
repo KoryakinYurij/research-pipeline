@@ -5,7 +5,7 @@
 
 ## Q1: Model ID для «Gemma 4 31B»
 
-**Вывод:** Модель существует. Это `gemma-4-31B-it`.
+**Вывод:** Модель существует. Это `gemma-4-31b-it`.
 
 - **Gemma 4 31B** — dense-модель на 31B параметров, выпущена Google DeepMind **2 апреля 2026**.
 - **Лицензия:** Apache 2.0 (open weights).
@@ -13,7 +13,7 @@
 - **Мультимодальность:** текст + изображения + видео.
 - **Агентные фичи:** function-calling, structured JSON output, system instructions.
 - **Доступна через Google AI Studio API** — можно вызывать так же, как Gemini-модели.
-- **Model ID:** `gemma-4-31B-it`
+- **Model ID:** `gemma-4-31b-it`
 
 Веса также доступны на Hugging Face (`google/gemma-4-31B`), Kaggle, и через Ollama/llama.cpp для локального запуска.
 
@@ -56,7 +56,7 @@ client = genai.Client(api_key='...')
 
 ```python
 response = client.models.generate_content(
-    model='gemma-4-31B-it',
+    model='gemma-4-31b-it',
     contents=f"""Сравни два исследовательских отчёта:
 
 === ОТЧЁТ 1 (Kilocode) ===
@@ -104,7 +104,7 @@ from google import genai
 client = genai.Client()  # GOOGLE_API_KEY из env
 
 response = client.models.generate_content(
-    model='gemma-4-31B-it',
+    model='gemma-4-31b-it',
     contents="Сравни отчёт A и отчёт B...",
     config={
         "system_instruction": "Ты аналитический ассистент. Пиши на русском.",

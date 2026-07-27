@@ -20,4 +20,6 @@ Determine:
 
 **Result:** Markdown findings under `docs/research/` (e.g. `P2-T2-hermes-minimax-findings.md`), with copy-pasteable commands. Note gitignore on `docs/research/` — `git add -f` if needed.
 
+**Note (audit 2026-07-27, finding L):** Minimax pricing found here gives only half of the cost ceiling. The other half — what a Phase 1 run actually costs — is unmeasurable today: `agent_cli.py:154` discards the NDJSON `step_finish` events that carry tokens/cost. Pair with [P1H-T5](P1H-T5-provenance-and-run-ids.md) before promising a numeric ceiling.
+
 ## Comments

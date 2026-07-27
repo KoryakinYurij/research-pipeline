@@ -7,7 +7,8 @@
 Работающий прототип **Dispatcher** на Python: читает задачу из `task.md` → отправляет в Kilocode CLI и Opencode CLI → сохраняет оба сырых отчёта → через Gemma 4 31B (Google AI Studio) генерирует кросс-саммари (общее / различия / на что обратить внимание) → формирует финальный `report.md`.
 
 **✅ Destination достигнут (2026-07-16).** Дальнейшие шаги:
-- **Verifier (Phase 2)** — **charted:** [MAP-phase2.md](MAP-phase2.md) (MVP Verifier shipped & eval’d).
+- **Phase 1 hardening (trust floor)** — **charted:** [MAP-phase1-hardening.md](MAP-phase1-hardening.md) (аудит 2026-07-27: закрыть fail-open, провенанс, контракт отчёта). Prerequisite для Phase 2.
+- **Verifier (Phase 2)** — **charted, работа не начата:** [MAP-phase2.md](MAP-phase2.md) — destination *той* карты сформулирован как «MVP Verifier shipped & eval’d»; на сегодня все P2-тикеты `open`, кода нет.
 - **Level 2 serve** — тикет в Not yet specified: замена subprocess на `kilo serve`/`opencode serve` + HTTP.
 - **Composer** — отдельный агент (Hermes + Minimax M3), генерирует `task.md`. Вне скоупа этой карты.
 
@@ -26,11 +27,11 @@
 
 ## Decisions so far
 
-- [T1 — Research: Google AI Studio Python SDK для Gemma 4 31B](tickets/T1-google-ai-studio-sdk.md) — используем `google-genai`, аутентификация через `GOOGLE_API_KEY`, системный промпт через `system_instruction`. Model ID: `gemma-4-31B-it`. 256K контекст, нативный structured output, function-calling.
+- [T1 — Research: Google AI Studio Python SDK для Gemma 4 31B](tickets/T1-google-ai-studio-sdk.md) — используем `google-genai`, аутентификация через `GOOGLE_API_KEY`, системный промпт через `system_instruction`. Model ID: `gemma-4-31b-it` (**строчная `b`** — API отвергает `31B`, см. T4). 256K контекст, нативный structured output, function-calling.
 
-- [T5 — Grilling: Уточнить model ID](tickets/T5-model-id-grilling.md) — подтверждено: Gemma 4 31B (не Gemini), model ID `gemma-4-31B-it`, доступна через Google AI Studio API.
+- [T5 — Grilling: Уточнить model ID](tickets/T5-model-id-grilling.md) — подтверждено: Gemma 4 31B (не Gemini), model ID `gemma-4-31b-it`, доступна через Google AI Studio API.
 
-- [T2 — Research: Kilocode & Opencode CLI в неинтерактивном режиме](tickets/T2-kilocode-opencode-cli.md) — основной подход: `--format json` (headless-режим, TTY не нужен, NDJSON-стрим). Production: `opencode serve` / `kilo serve`. `script`/`pty` — deprecated. Opencode: `--dangerously-skip-permissions`, дефолт `opencode/hy3-free`. Kilo: `--auto`, дефолт `kilo-auto/free`. Gemma 4 31B недоступна ни в одном из CLI.
+- [T2 — Research: Kilocode & Opencode CLI в неинтерактивном режиме](tickets/T2-kilocode-opencode-cli.md) — основной подход: `--format json` (headless-режим, TTY не нужен, NDJSON-стрим). Production: `opencode serve` / `kilo serve`. `script`/`pty` — deprecated. Opencode: `--dangerously-skip-permissions`, дефолт в коде — `opencode/deepseek-v4-flash-free` (не `opencode/hy3-free`, как было записано изначально; обоснование смены нигде не зафиксировано). Kilo: `--auto`, дефолт `kilo-auto/free`. Gemma 4 31B недоступна ни в одном из CLI.
 
 - [T3 — Task: Project scaffolding](tickets/T3-project-scaffolding.md) — проект на VPS, uv-окружение, `src-layout` (`src/research_pipeline/`). Модули: `config.py` (os.getenv, без pydantic-settings), `clients/agent_cli.py`, `clients/gemma.py`. Точка входа: `uv run dispatcher`. Dev: `ruff`, `pytest`. `pydantic-settings` сознательно отклонён как оверкилл.
 
@@ -48,4 +49,5 @@
 
 - **Composer (Hermes + Minimax M3)** — отдельный агент, который будет создавать задачи. Не входит в этот research pipeline.
 - **Verifier (Phase 2)** — вынесено в [MAP-phase2.md](MAP-phase2.md); не реализуется внутри Phase 1.
+- **Phase 1 hardening** — дефекты и провенанс Phase 1 вынесены в [MAP-phase1-hardening.md](MAP-phase1-hardening.md); эта карта своего destination уже достигла и не переоткрывается.
 - **`pydantic-settings`** — предложен в ревью T3 как SOTA, отклонён: оверкилл для прототипа с 3 env-переменными. Подробное обоснование — в [T3 resolution](tickets/T3-project-scaffolding.md): scale mismatch (3 значения vs библиотека для сложных конфигов), читаемость плоских констант лучше, Google SDK сам валидирует ключ при вызове, соблюдение принципа «no abstractions for single-use code».
