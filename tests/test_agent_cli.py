@@ -121,6 +121,44 @@ class TestStreamLimitAndErrorHandling:
         assert "exceeds MAX_PROMPT_BYTES" in res["stderr"]
         assert "Spawn aborted" in res["stderr"]
 
+    @pytest.mark.anyio
+    async def test_run_cli_preserves_accumulated_text_on_timeout(
+        self, monkeypatch
+    ) -> None:
+        """TimeoutError returns accumulated text, ok=False, and timeout note in stderr."""
+        import asyncio
+        from unittest.mock import AsyncMock, MagicMock
+        from research_pipeline.clients.agent_cli import _run_cli
+
+        mock_proc = MagicMock()
+        mock_proc.pid = 12345
+        mock_proc.wait = AsyncMock()
+
+        line1 = b'{"type":"text", "part":{"text":"partial answer"}}\n'
+
+        async def mock_readline():
+            if not hasattr(mock_readline, "called"):
+                setattr(mock_readline, "called", True)
+                return line1
+            await asyncio.sleep(10)
+            return b""
+
+        mock_proc.stdout.readline = AsyncMock(side_effect=mock_readline)
+        mock_proc.stderr = AsyncMock()
+        mock_proc.stderr.read = AsyncMock(return_value=b"")
+
+        mock_create = AsyncMock(return_value=mock_proc)
+        monkeypatch.setattr(asyncio, "create_subprocess_exec", mock_create)
+        monkeypatch.setattr("os.getpgid", lambda pid: pid)
+        monkeypatch.setattr("os.killpg", lambda pgid, sig: None)
+
+        res = await _run_cli(["fake_cli"], timeout=1)
+
+        assert res["text"] == "partial answer"
+        assert res["ok"] is False
+        assert res["exit_code"] == -1
+        assert "Timeout after 1s" in res["stderr"]
+        assert "(truncated)" in res["stderr"]
 
 
 class TestParseNdjsonMetrics:

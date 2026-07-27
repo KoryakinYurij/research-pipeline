@@ -176,9 +176,9 @@ async def _run_cli(
         await _cleanup_process(proc, stderr_task)
         wall_time_s = round(time.monotonic() - start_time, 2)
         return {
-            "text": "",
+            "text": "".join(text_parts),
             "exit_code": -1,
-            "stderr": f"Timeout after {timeout}s",
+            "stderr": f"Timeout after {timeout}s (truncated)",
             "ok": False,
             "metrics": {"wall_time_s": wall_time_s, "events": metrics_events},
         }
@@ -186,13 +186,12 @@ async def _run_cli(
         await _cleanup_process(proc, stderr_task)
         wall_time_s = round(time.monotonic() - start_time, 2)
         return {
-            "text": "",
+            "text": "".join(text_parts),
             "exit_code": -1,
-            "stderr": f"Stream read error: {e}",
+            "stderr": f"Stream read error: {e} (truncated)",
             "ok": False,
             "metrics": {"wall_time_s": wall_time_s, "events": metrics_events},
         }
-
 
     stderr_bytes = await stderr_task
     stderr_str = stderr_bytes.decode("utf-8", errors="replace").strip()
