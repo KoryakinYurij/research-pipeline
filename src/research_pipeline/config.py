@@ -17,7 +17,6 @@ CLI_TIMEOUT: int = int(os.getenv("CLI_TIMEOUT", "120"))
 GEMMA_TIMEOUT: int = int(os.getenv("GEMMA_TIMEOUT", "60"))
 
 
-
 def ensure_dirs() -> None:
     """Create output directories if they don't exist.
 

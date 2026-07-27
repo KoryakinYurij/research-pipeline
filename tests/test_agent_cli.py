@@ -3,7 +3,6 @@ import pytest
 from research_pipeline.clients.agent_cli import _parse_ndjson_text
 
 
-
 class TestParseNdjsonText:
     """The real NDJSON structure is {\"type\": \"text\", \"part\": {\"text\": \"...\"}}."""
 
@@ -56,7 +55,6 @@ class TestParseNdjsonText:
         assert _parse_ndjson_text(obj) is None
 
 
-
 class TestStreamLimitAndErrorHandling:
     """Test STREAM_LIMIT constant and error handling in _run_cli."""
 
@@ -67,7 +65,6 @@ class TestStreamLimitAndErrorHandling:
 
     @pytest.mark.anyio
     async def test_run_cli_handles_value_error(self, monkeypatch) -> None:
-
         """ValueError during stdout readline (chunk longer than limit) soft-fails gracefully."""
         import asyncio
         from unittest.mock import AsyncMock, MagicMock
@@ -110,6 +107,19 @@ class TestStreamLimitAndErrorHandling:
         assert res["exit_code"] == -1
         assert "Failed to spawn CLI fake_cli" in res["stderr"]
         assert "Argument list too long" in res["stderr"]
+
+    @pytest.mark.anyio
+    async def test_run_cli_rejects_oversized_prompt(self) -> None:
+        """Prompts exceeding MAX_PROMPT_BYTES (120 KiB) are rejected before process spawn."""
+        from research_pipeline.clients.agent_cli import MAX_PROMPT_BYTES, _run_cli
+
+        oversized_prompt = "x" * (MAX_PROMPT_BYTES + 1024)
+        res = await _run_cli(["fake_cli", oversized_prompt], timeout=5)
+
+        assert res["ok"] is False
+        assert res["exit_code"] == -1
+        assert "exceeds MAX_PROMPT_BYTES" in res["stderr"]
+        assert "Spawn aborted" in res["stderr"]
 
 
 class TestParseNdjsonMetrics:
@@ -157,7 +167,3 @@ class TestCleanEnv:
         assert "GEMINI_API_KEY" not in cleaned
         assert "ANTHROPIC_API_KEY" not in cleaned
         assert cleaned.get("PATH") == "/usr/bin"
-
-
-
-

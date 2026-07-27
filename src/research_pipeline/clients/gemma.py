@@ -71,4 +71,3 @@ def _build_prompt(task_content: str, kilo_output: str, opencode_output: str) -> 
         "## Отчёт Opencode\n\n"
         f"{opencode_output}"
     )
-

@@ -19,8 +19,12 @@ import signal
 import time
 
 
-
-STREAM_LIMIT = 10 * 1024 * 1024  # 10 MiB limit for NDJSON lines (default asyncio limit is 64 KiB)
+STREAM_LIMIT = (
+    10 * 1024 * 1024
+)  # 10 MiB limit for NDJSON lines (default asyncio limit is 64 KiB)
+MAX_PROMPT_BYTES = (
+    120 * 1024
+)  # 120 KiB limit for prompt CLI argument (below OS MAX_ARG_STRLEN 128 KiB)
 
 
 def _clean_env() -> dict[str, str]:
@@ -83,6 +87,20 @@ async def _run_cli(
     start_time = time.monotonic()
     metrics_events: list[dict] = []
     effective_env = env if env is not None else _clean_env()
+
+    prompt_arg = cmd[-1] if cmd else ""
+    prompt_bytes = len(prompt_arg.encode("utf-8"))
+    if prompt_bytes > MAX_PROMPT_BYTES:
+        return {
+            "text": "",
+            "exit_code": -1,
+            "stderr": (
+                f"Prompt size ({prompt_bytes} bytes) "
+                f"exceeds MAX_PROMPT_BYTES ({MAX_PROMPT_BYTES} bytes). Spawn aborted."
+            ),
+            "ok": False,
+            "metrics": {"wall_time_s": 0.0, "events": []},
+        }
 
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -187,8 +205,6 @@ async def _run_cli(
     }
 
 
-
-
 async def _cleanup_process(
     proc: asyncio.subprocess.Process, stderr_task: asyncio.Task
 ) -> None:
@@ -200,7 +216,6 @@ async def _cleanup_process(
         proc.kill()
     await proc.wait()
     stderr_task.cancel()
-
 
 
 async def _read_stream(stream: asyncio.StreamReader) -> bytes:
@@ -242,9 +257,9 @@ def _parse_ndjson_metrics(obj: dict) -> dict | None:
     obj_type = obj.get("type")
     part = obj.get("part") if isinstance(obj.get("part"), dict) else {}
 
-    is_finish = (
-        obj_type in ("step_finish", "finish")
-        or part.get("type") in ("step-finish", "finish")
+    is_finish = obj_type in ("step_finish", "finish") or part.get("type") in (
+        "step-finish",
+        "finish",
     )
     has_stats = any(
         k in obj or k in part for k in ("tokens", "usage", "cost", "model", "stats")
@@ -271,4 +286,3 @@ def _parse_ndjson_metrics(obj: dict) -> dict | None:
         metrics["part"] = part
 
     return metrics if metrics else None
-
