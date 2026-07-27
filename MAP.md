@@ -7,7 +7,7 @@
 Работающий прототип **Dispatcher** на Python: читает задачу из `task.md` → отправляет в Kilocode CLI и Opencode CLI → сохраняет оба сырых отчёта → через Gemma 4 31B (Google AI Studio) генерирует кросс-саммари (общее / различия / на что обратить внимание) → формирует финальный `report.md`.
 
 **✅ Destination достигнут (2026-07-16).** Дальнейшие шаги:
-- **Phase 1 hardening (trust floor)** — **charted:** [MAP-phase1-hardening.md](MAP-phase1-hardening.md) (аудит 2026-07-27: закрыть fail-open, провенанс, контракт отчёта). Prerequisite для Phase 2.
+- **Phase 1 hardening (trust floor)** — **✅ Destination достигнут (2026-07-27):** [MAP-phase1-hardening.md](MAP-phase1-hardening.md) (закрыты fail-open, провенанс, контракт отчёта, 7/7 тикетов P1H). Prerequisite для Phase 2 выполнен.
 - **Verifier (Phase 2)** — **charted, работа не начата:** [MAP-phase2.md](MAP-phase2.md) — destination *той* карты сформулирован как «MVP Verifier shipped & eval’d»; на сегодня все P2-тикеты `open`, кода нет.
 - **Level 2 serve** — тикет в Not yet specified: замена subprocess на `kilo serve`/`opencode serve` + HTTP.
 - **Composer** — отдельный агент (Hermes + Minimax M3), генерирует `task.md`. Вне скоупа этой карты.

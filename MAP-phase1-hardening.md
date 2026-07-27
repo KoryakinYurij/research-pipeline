@@ -9,6 +9,8 @@
 
 **Phase 1 produces a trustworthy, provenance-bearing artifact.** A `report-*.md` exists only when there is real research behind it; it carries the material Layer B is meant to judge (not just the agents' chat abstracts); every run records what it consumed and where its raw material came from; the verified crash paths on the happy path are closed; and the doc canon says what the code actually does.
 
+**✅ Destination достигнут (2026-07-27).** Все семь тикетов P1H закрыты; E2E-прогон в `reports/run-20260727-171618/`; 34 юнит-теста зелёные.
+
 ## Notes
 
 - **Source:** code + design audit, 2026-07-27, empirically probed on this machine (Python 3.12.3). Findings carry stable letter tags **A–R**; each ticket restates its own evidence (file:line, probe result, numbers) so a future session never re-derives them.
@@ -50,7 +52,7 @@
 ## Not yet specified
 
 - Whether the intake gate from [P1H-T2](tickets/P1H-T2-fail-open-report-gate.md) and Layer A ([P2-T4](tickets/P2-T4-layer-a-gates.md)) are one code path or two — answerable once the gate exists.
-- Retry / degraded policy once `CLI_TIMEOUT` moves off the 120s boundary (finding D shows the same task flapping at that value). Overlaps the existing "Ретраи и degraded mode" fog on [MAP.md](MAP.md).
+- Retry / degraded policy: `CLI_TIMEOUT` = 600 с 2026-07-27 (условие наступило, флэппинг на 120s снят). Вопрос политики ретраев открыт по-настоящему и переходит в Phase 2.
 - Observability beyond `step_finish` capture: per-run log, and which of the premortem's leading indicators are cheap to emit from Phase 1.
 - Whether Gemma stays the cross-summary model at all once the report contract ([P1H-T4](tickets/P1H-T4-report-contract-grilling.md)) is settled and input size changes.
 - `GEMMA_TIMEOUT = 60` с при `CLI_TIMEOUT = 600` с, при этом на вход Gemma идут до 50 KiB артефактов с каждого агента; соотношение не проверено на реальной нагрузке.
