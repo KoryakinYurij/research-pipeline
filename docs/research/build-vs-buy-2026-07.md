@@ -294,8 +294,8 @@ make docker-init && make docker-start
 # http://localhost:2026
 ```
 
-Задать **тот же вопрос**, что в `tasks/task.md`. Заполнить таблицу
-в `docs/research/deerflow-trial.md`.
+Задать **тот же вопрос**, что в `tasks/task.md`. Заполнить чек-лист замера
+(таблица ниже).
 
 > Перед серьёзными прогонами включить в `config.yaml`:
 > ```yaml
